@@ -2,7 +2,7 @@
 {
     public enum Cities
     {
-        Minsk,
-        London
+        Minsk = 834463,
+        London = 44418
     }
 }
