@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MetaWeatherTest.Weather;
+using Newtonsoft.Json;
 
 namespace MetaWeatherTest.Models 
 {
@@ -14,6 +15,7 @@ namespace MetaWeatherTest.Models
         public int Woeid { get; set; }
 
         [JsonProperty("latt_long")]
-        public string LattLong { get; set; }
+        [JsonConverter(typeof(LatLongConverter))]
+        public LatLong LattLong { get; set; }
     }
 }

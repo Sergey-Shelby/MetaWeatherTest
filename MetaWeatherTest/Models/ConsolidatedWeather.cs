@@ -21,7 +21,7 @@ namespace MetaWeatherTest.Models
         public DateTime Created { get; set; }
 
         [JsonProperty("applicable_date")]
-        public string ApplicableDate { get; set; }
+        public DateTime ApplicableDate { get; set; }
 
         [JsonProperty("min_temp")]
         public double MinTemp { get; set; }

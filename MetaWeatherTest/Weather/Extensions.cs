@@ -4,9 +4,8 @@ namespace MetaWeatherTest.Weather
 {
     public static class Extensions
     {
-        public static Seasons Season(this string dateString)
+        public static Seasons Season(this DateTime date)
         {
-            DateTime date = DateTime.Parse(dateString);
             int doy = date.DayOfYear - Convert.ToInt32((DateTime.IsLeapYear(date.Year)) && date.DayOfYear > 59);
 
             if (doy < 59 || doy >= 334) return Seasons.Winter;

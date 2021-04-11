@@ -17,26 +17,11 @@ namespace MetaWeatherTest
             _client = new WeatherClient();
         }
 
-        private bool IsAssertSeasonTemperature(WeatherCity weatherCities)
-        {
-            foreach (var item in weatherCities.ConsolidatedWeather)
-            {
-                Seasons season = item.ApplicableDate.Season();
-                switch (season)
-                {
-                    case Seasons.Winter: if (item.TheTemp < -50 && item.TheTemp > 10) return false; break;
-                    case Seasons.Spring: if (item.TheTemp < -10 && item.TheTemp > 30) return false; break;
-                    case Seasons.Summer: if (item.TheTemp < 0 && item.TheTemp > 40) return false; break;
-                    case Seasons.Autumn: if (item.TheTemp < -10 && item.TheTemp > 20) return false; break;
-                    default: return false;
-                }
-            }
-            return true;
-        }
         [Test]
         public async Task MinimumTemperatureInCityTest()
         {
-            var actualMinTemperature = await _client.GetMinTemperature(Cities.Minsk, new DateTime(2021, 1, 1));
+            var listWeather = await _client.GetWeatherAsync(Cities.Minsk, new DateTime(2021, 1, 1));
+            var actualMinTemperature = listWeather.Select(m => m.MinTemp);
             var expectedMinTemperature = -0.235;
             Assert.That(actualMinTemperature, Does.Contain(expectedMinTemperature), "Minimum temperature comparison error");
         }
@@ -44,13 +29,13 @@ namespace MetaWeatherTest
         [Test]
         public async Task LatitudeLongitudeOfCityTest()
         {
-            var latlong = await _client.GetCityLatLong(Cities.Minsk);
+            var city = await _client.GetCity(Cities.Minsk);
             var expectedLatitude = 53.9;
             var expectedLongitude = 27.5;
             Assert.Multiple(() =>
             {
-                Assert.That(latlong.Latitude, Is.EqualTo(expectedLatitude).Within(0.099), "Latitude does not match");
-                Assert.That(latlong.Longitude, Is.EqualTo(expectedLongitude).Within(0.099), "Longitude does not match");
+                Assert.That(city.LattLong.Latitude, Is.EqualTo(expectedLatitude).Within(0.099), "Latitude does not match");
+                Assert.That(city.LattLong.Longitude, Is.EqualTo(expectedLongitude).Within(0.099), "Longitude does not match");
             });
         }
 
@@ -67,8 +52,7 @@ namespace MetaWeatherTest
         public async Task TemperatureSeasonInRangeTest()
         {
             var weatherCity = await _client.GetWeatherAsync(Cities.Minsk);
-            var actualIsSeasonTemperature = IsAssertSeasonTemperature(weatherCity);
-            Assert.That(actualIsSeasonTemperature, "Temperature is out of range");
+            AssertSeasonTemperature(weatherCity);
         }
 
         [Test]
@@ -80,6 +64,29 @@ namespace MetaWeatherTest
             var listWeatherNow = await _client.GetWeatherAsync(Cities.London, DateTime.Now);
             var weatherNow = listWeatherNow.Select(x => x.WeatherStateName);
             Assert.That(weatherByDate.Intersect(weatherNow).Any(), Is.True, "Not contains same state");
+        }
+
+        private void AssertSeasonTemperature(WeatherCity weatherCities)
+        {
+            foreach (var day in weatherCities.ConsolidatedWeather)
+            {
+                Seasons season = day.ApplicableDate.Season();
+                switch (season)
+                {
+                    case Seasons.Winter:
+                        Assert.That(day.TheTemp, Is.InRange(-50, 10), $"Weather for {season} (date: {day.ApplicableDate})");
+                        break;
+                    case Seasons.Spring:
+                        Assert.That(day.TheTemp, Is.InRange(-10, 30), $"Weather for {season} (date: {day.ApplicableDate})");
+                        break;
+                    case Seasons.Summer:
+                        Assert.That(day.TheTemp, Is.InRange(0, 40), $"Weather for {season} (date: {day.ApplicableDate})");
+                        break;
+                    case Seasons.Autumn:
+                        Assert.That(day.TheTemp, Is.InRange(-10, 20), $"Weather for {season} (date: {day.ApplicableDate})");
+                        break;
+                }
+            }
         }
     }
 }
